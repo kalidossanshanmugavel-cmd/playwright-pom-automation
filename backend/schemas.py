@@ -1,0 +1,22 @@
+from pydantic import BaseModel, EmailStr, Field
+
+
+class RegisterRequest(BaseModel):
+    name: str = Field(min_length=2, max_length=100)
+    email: EmailStr
+    password: str = Field(min_length=6)
+
+
+class LoginRequest(BaseModel):
+    email: EmailStr
+    password: str
+
+
+class AnswerItem(BaseModel):
+    question_id: int
+    answer: str
+
+
+class SubmitRequest(BaseModel):
+    course_id: int
+    answers: list[AnswerItem]
