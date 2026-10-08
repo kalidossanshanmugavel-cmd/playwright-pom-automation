@@ -1,0 +1,12 @@
+node_modules/
+playwright-report/
+test-results/
+blob-report/
+playwright/.cache/
+
+# Playwright MCP generated files
+.playwright-mcp/
+
+# Environment files
+.env
+.env.*
