@@ -20,7 +20,7 @@ jobs:
 
       - name: Install Dependencies
         working-directory: ./playwright
-        run: npm ci
+        run: npm install
 
       - name: Install Playwright Browser
         working-directory: ./playwright
