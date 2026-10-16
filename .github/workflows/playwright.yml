@@ -1,3 +1,4 @@
+
 name: Playwright CI Pipeline
 
 on:
@@ -10,7 +11,7 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout Code
+      - name: Checkout Repository
         uses: actions/checkout@v4
 
       - name: Setup Node.js
@@ -18,21 +19,71 @@ jobs:
         with:
           node-version: '22'
 
-      - name: Install Dependencies
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install Backend Dependencies
+        working-directory: ./backend
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+
+      - name: Start FastAPI Backend
+        working-directory: ./backend
+        run: |
+          python -m uvicorn main:app --host 127.0.0.1 --port 8000 > /tmp/backend.log 2>&1 &
+
+      - name: Install Frontend Dependencies
+        working-directory: ./frontend
+        run: npm install
+
+      - name: Start React Frontend
+        working-directory: ./frontend
+        run: |
+          npm run dev -- --host 127.0.0.1 --port 5173 > /tmp/frontend.log 2>&1 &
+
+      - name: Wait for Frontend and Backend
+        run: |
+          for i in {1..30}; do
+            if curl -fsS http://127.0.0.1:8000/openapi.json > /dev/null && \
+               curl -fsS http://127.0.0.1:5173/ > /dev/null; then
+              echo "Both servers are ready"
+              exit 0
+            fi
+            sleep 2
+          done
+          cat /tmp/backend.log
+          cat /tmp/frontend.log
+          exit 1
+
+      - name: Install Playwright Dependencies
         working-directory: ./playwright
         run: npm install
 
-      - name: Install Playwright Browser
+      - name: Install Chromium
         working-directory: ./playwright
         run: npx playwright install --with-deps chromium
 
       - name: Run Playwright Tests
         working-directory: ./playwright
         run: npx playwright test
+        env:
+          CI: true
 
-      - name: Upload Report
+      - name: Upload HTML Report
         if: always()
         uses: actions/upload-artifact@v4
         with:
           name: playwright-report
           path: playwright/playwright-report/
+          retention-days: 7
+
+      - name: Upload Failure Screenshots
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-test-results
+          path: playwright/test-results/
+          if-no-files-found: ignore
