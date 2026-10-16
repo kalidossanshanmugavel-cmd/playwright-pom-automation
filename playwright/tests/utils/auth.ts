@@ -9,7 +9,7 @@ export async function loginAs(page: Page, role: Role): Promise<void> {
   const login = new LoginPage(page);
   const dashboard = new DashboardPage(page);
   await login.openLogin();
-  await login.fillCredentials(account.email, "test");
+  await login.fillCredentials(account.email, account.password);
   await login.submit();
   await dashboard.expectRoleDashboard(role);
 }
