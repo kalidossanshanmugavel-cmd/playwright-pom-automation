@@ -4,6 +4,7 @@ import { getUser } from "@utils/excelReader";
 import { LoginPage } from "@pages/LoginPage";
 import { DashboardPage } from "@pages/DashboardPage";
 
+//login function
 export async function loginAs(page: Page, role: Role): Promise<void> {
   const account = getUser(role);
   const login = new LoginPage(page);
